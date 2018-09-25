@@ -63,7 +63,6 @@ class ResNext(nn.Module):
         super(ResNext, self).__init__()
         self.net = models.ResNet(basic_block.with_cardinality(cardinality, dim), layers, num_classes)
 
-
     def forward(self, x):
         return self.net.forward(x)
 
@@ -78,7 +77,6 @@ def resnext50(pretrained=False, **kwargs):
         model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
     return model
 
-
 def resnext101_32(pretrained=False, **kwargs):
     """Constructs a ResNeXt-101 32x8d model.
 
@@ -90,7 +88,6 @@ def resnext101_32(pretrained=False, **kwargs):
         model.load_state_dict(model_zoo.load_url(model_urls['resnext101-32x8']))
     return model
 
-
 def resnext101_64(pretrained=False, **kwargs):
     """Constructs a ResNeXt-101 64x4d model.
 
@@ -101,7 +98,6 @@ def resnext101_64(pretrained=False, **kwargs):
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnext101-64x4']))
     return model
-
 
 def resnext152(pretrained=False, **kwargs):
     """Constructs a ResNeXt-152 32x8d model.
