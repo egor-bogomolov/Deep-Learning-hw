@@ -74,7 +74,8 @@ def resnext50(pretrained=False, **kwargs):
     """
     model = ResNext(ResNextBlock, 32, 4, [3, 4, 6, 3], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
+        raise NotImplementedError('Weights not found')
+        # model.load_state_dict(model_zoo.load_url(model_urls['resnext50']))
     return model
 
 def resnext101_32(pretrained=False, **kwargs):
