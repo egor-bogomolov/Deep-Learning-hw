@@ -15,21 +15,18 @@ class ResNextBlock(nn.Module):
     r"""Class is the same with :class:`torchvision.models.Bottleneck` except for the `groups` parameter at layer conv2.
     """
 
-    # field required by :class:`torchvision.models.ResNet` API
-    expansion = 4
-
-    def __init__(self, inplanes, planes, stride=1, downsample=None, cardinality=1, multiplier=1):
+    def __init__(self, inplanes, planes, stride=1, downsample=None, cardinality=1, expansion=1):
         super(ResNextBlock, self).__init__()
         self.cardinality = cardinality
-        self.multiplier = multiplier
-        planes *= self.multiplier
+        self.expansion = expansion
+        planes *= self.expansion
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
                                padding=1, groups=self.cardinality, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
-        self.conv3 = nn.Conv2d(planes, planes * 4 // self.multiplier, kernel_size=1, bias=False)
-        self.bn3 = nn.BatchNorm2d(planes * 4 // self.multiplier)
+        self.conv3 = nn.Conv2d(planes, planes * 4 // self.expansion, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes * 4 // self.expansion)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
@@ -54,9 +51,9 @@ class ResNextBlock(nn.Module):
 
 class ResNext(nn.Module):
 
-    def __init__(self, block, cardinality, dims, layers, num_classes=1000):
+    def __init__(self, block, cardinality, expansion, layers, num_classes=1000):
         self.cardinality = cardinality
-        self.dims = dims
+        self.expansion = expansion
         self.inplanes = 64
         super(ResNext, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
@@ -69,7 +66,7 @@ class ResNext(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AvgPool2d(7, stride=1)
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        self.fc = nn.Linear(512 * self.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -81,18 +78,18 @@ class ResNext(nn.Module):
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
-        if stride != 1 or self.inplanes != planes * block.expansion:
+        if stride != 1 or self.inplanes != planes * self.expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,
+                nn.Conv2d(self.inplanes, planes * self.expansion,
                           kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(planes * block.expansion),
+                nn.BatchNorm2d(planes * self.expansion),
             )
 
         layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample, cardinality=self.cardinality, multiplier=self.dims))
-        self.inplanes = planes * block.expansion
+        layers.append(block(self.inplanes, planes, stride, downsample, cardinality=self.cardinality, expansion=self.expansion))
+        self.inplanes = planes * self.expansion
         for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes, cardinality=self.cardinality, multiplier=self.dims))
+            layers.append(block(self.inplanes, planes, cardinality=self.cardinality, expansion=self.expansion))
 
         return nn.Sequential(*layers)
 
@@ -107,7 +104,7 @@ class ResNext(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
 
-        x = self.avgpool(x)
+        x    = self.avgpool(x)
         x = x.view(x.size(0), -1)
         x = self.fc(x)
 
