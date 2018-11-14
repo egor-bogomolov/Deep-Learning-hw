@@ -10,7 +10,7 @@ import torch.utils.data
 import torchvision.utils as vutils
 from tensorboardX import SummaryWriter
 
-from task08 import metric
+import metric
 
 
 class DCGANTrainer:

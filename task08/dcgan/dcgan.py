@@ -3,10 +3,10 @@ import torch.nn as nn
 
 class DCGenerator(nn.Module):
 
-    def __init__(self, vector_size=100, layers=128):
+    def __init__(self, image_size=None, vector_size=100, layers=128):
         super(DCGenerator, self).__init__()
         self.model = nn.Sequential(
-            nn.ConvTranspose2d(vector_size, layers * 4, 4, stride=2, padding=1),
+            nn.ConvTranspose2d(vector_size, layers * 4, 4, stride=2),
             nn.BatchNorm2d(layers * 4),
             nn.ReLU(inplace=True),
             nn.ConvTranspose2d(layers * 4, layers * 2, 4, stride=2, padding=1),
@@ -25,7 +25,7 @@ class DCGenerator(nn.Module):
 
 class DCDiscriminator(nn.Module):
 
-    def __init__(self, layers=128):
+    def __init__(self, image_size=None, layers=128):
         super(DCDiscriminator, self).__init__()
         self.model = nn.Sequential(
             nn.Conv2d(3, layers, 4, stride=2, padding=1),
