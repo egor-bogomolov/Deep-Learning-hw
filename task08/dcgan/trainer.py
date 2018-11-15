@@ -90,7 +90,7 @@ class DCGANTrainer:
                 err_g.backward()
                 self.optimizer_g.step()
 
-                logging.info(f'epoch: [{epoch}/{n_epoch}] iter: [{i}/{len(dataloader)}] loss_D: {err_d:.4f} '
+                logging.info(f'epoch: [{epoch}/{f_epoch + n_epoch}] iter: [{i}/{len(dataloader)}] loss_D: {err_d:.4f} '
                              f'loss_G: {err_g:.4f}')
                 self.writer.add_scalar('data/loss_discriminator', err_d, global_step)
                 self.writer.add_scalar('data/loss_generator', err_g, global_step)
