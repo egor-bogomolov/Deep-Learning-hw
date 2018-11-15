@@ -61,7 +61,7 @@ def main():
         discriminator.load_state_dict(torch.load(config.pretrained_discriminator))
 
     if config.pretrained_generator:
-        discriminator.load_state_dict(torch.load(config.pretrained_generator))
+        generator.load_state_dict(torch.load(config.pretrained_generator))
 
     trainer = DCGANTrainer(generator=generator, discriminator=discriminator,
                            optimizer_d=Adam(discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999)),
