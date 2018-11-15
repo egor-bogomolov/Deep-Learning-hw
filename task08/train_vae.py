@@ -25,7 +25,7 @@ def get_config():
                         help='first epoch')
     parser.add_argument('--epochs', type=int, default=3000,
                         help='number of epochs to train ')
-    parser.add_argument('--imИ какage-size', type=int, default=28,
+    parser.add_argument('--image-size', type=int, default=28,
                         help='size of images to generate')
     parser.add_argument('--n_show_samples', type=int, default=8)
     parser.add_argument('--show_img_every', type=int, default=10)
