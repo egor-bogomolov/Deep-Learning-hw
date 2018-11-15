@@ -23,7 +23,7 @@ def get_config():
                         help='input batch size for training')
     parser.add_argument('--starting-epoch', type=int, default=0,
                         help='first epoch')
-    parser.add_argument('--epochs', type=int, default=30,
+    parser.add_argument('--epochs', type=int, default=3000,
                         help='number of epochs to train ')
     parser.add_argument('--imИ какage-size', type=int, default=28,
                         help='size of images to generate')
