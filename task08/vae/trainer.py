@@ -6,16 +6,16 @@ import torchvision.utils as vutils
 from tensorboardX import SummaryWriter
 
 
-class Trainer:
+class VAETrainer:
 
     def __init__(self, model, train_loader, test_loader, optimizer,
                  loss_function, device='cpu'):
-        self.model = model
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.optimizer = optimizer
         self.loss_function = loss_function
         self.device = device
+        self.model = model.to(device)
         self.writer = SummaryWriter()
 
     def train(self, epoch, log_interval):
@@ -23,12 +23,18 @@ class Trainer:
         epoch_loss = 0
 
         for batch_idx, (data, _) in enumerate(self.train_loader):
-            # TODO your code here
-            train_loss = None
+            self.model.zero_grad()
+
+            data = data.to(self.device)
+            decoded, mu, logvar = self.model(data)
+            train_loss = self.loss_function(decoded, data, mu, logvar)
+            train_loss.backward()
+
             epoch_loss += train_loss
             norm_train_loss = train_loss / len(data)
 
             self.optimizer.step()
+
             if batch_idx % log_interval == 0:
                 msg = 'Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, batch_idx * len(data),
@@ -50,16 +56,22 @@ class Trainer:
                                scalar_value=epoch_loss,
                                global_step=epoch)
 
-    def test(self, epoch, batch_size, log_interval):
+    def test(self, epoch, log_interval, image_log_interval, n_show_samples):
         self.model.eval()
         test_epoch_loss = 0
 
         for batch_idx, (data, _) in enumerate(self.test_loader):
-            # TODO your code here
 
-            test_loss = None
+            with torch.no_grad():
+                data = data.to(self.device)
+                decoded, mu, logvar = self.model(data)
+                test_loss = self.loss_function(decoded, data, mu, logvar)
+
             test_epoch_loss += test_loss
 
+            batch_size = self.test_loader.batch_size
+            batches_per_epoch_test = len(self.test_loader.dataset) // batch_size
+            global_step = batches_per_epoch_test * epoch + batch_idx
             if batch_idx % log_interval == 0:
                 msg = 'Test Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, batch_idx * len(data),
@@ -68,20 +80,26 @@ class Trainer:
                     test_loss / len(data))
                 logging.info(msg)
 
-                batches_per_epoch_test = len(self.test_loader.dataset) // batch_size
+
                 self.writer.add_scalar(tag='data/test_loss',
                                        scalar_value=test_loss / len(data),
-                                       global_step=batches_per_epoch_test * (epoch - 1) + batch_idx)
+                                       global_step=global_step)
+
+            if batch_idx % image_log_interval == 0:
+                self.plot_generated(decoded, data, n_show_samples, global_step)
 
         test_epoch_loss /= len(self.test_loader.dataset)
         logging.info('====> Test set loss: {:.4f}'.format(test_epoch_loss))
         self.writer.add_scalar(tag='data/test_epoch_loss',
                                scalar_value=test_epoch_loss,
                                global_step=epoch)
-        self.plot_generated(epoch, batch_size)
 
-    def plot_generated(self, epoch, batch_size):
-        # TODO your code here
+    def plot_generated(self, decoded, real, n_show_samples, global_step):
+        x = vutils.make_grid(decoded[:n_show_samples], normalize=True, scale_each=True)
+        self.writer.add_image('img/decoded', x, global_step)
+
+        y = vutils.make_grid(real[:n_show_samples], normalize=True, scale_each=True)
+        self.writer.add_image('img/real', y, global_step)
         pass
 
     def save(self, checkpoint_path):
