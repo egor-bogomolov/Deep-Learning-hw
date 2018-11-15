@@ -70,6 +70,7 @@ def main():
                          test_loader=test_loader,
                          optimizer=Adam(vae.parameters(), lr=0.0002, betas=(0.5, 0.999)),
                          loss_function=loss_function,
+                         image_size=config.image_size,
                          device='cuda')
 
     for epoch in range(config.starting_epoch, config.starting_epoch + config.epochs):

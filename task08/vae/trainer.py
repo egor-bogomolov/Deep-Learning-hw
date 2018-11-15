@@ -9,11 +9,12 @@ from tensorboardX import SummaryWriter
 class VAETrainer:
 
     def __init__(self, model, train_loader, test_loader, optimizer,
-                 loss_function, device='cpu'):
+                 loss_function, image_size, device='cpu'):
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.optimizer = optimizer
         self.loss_function = loss_function
+        self.image_size = image_size
         self.device = device
         self.model = model.to(device)
         self.writer = SummaryWriter()
@@ -65,6 +66,7 @@ class VAETrainer:
             with torch.no_grad():
                 data = data.to(self.device)
                 decoded, mu, logvar = self.model(data)
+                decoded = decoded.view(-1, 3, self.image_size, self.image_size)
                 test_loss = self.loss_function(decoded, data, mu, logvar)
 
             test_epoch_loss += test_loss
