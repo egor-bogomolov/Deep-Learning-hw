@@ -48,12 +48,12 @@ class DCGANTrainer:
         torch.save(self.net_g.state_dict(), os.path.join(self.save_root, f'generator_epoch_{epoch}.pt'))
         torch.save(self.net_d.state_dict(), os.path.join(self.save_root, f'discriminator_epoch_{epoch}.pt'))
 
-    def train(self, dataloader, n_epoch=25, n_show_samples=8, show_img_every=10, log_metrics_every=100,
+    def train(self, dataloader, n_epoch=25, f_epoch=0, n_show_samples=8, show_img_every=10, log_metrics_every=100,
               metrics_dataset='cifar10', metrics_to_log=('inception-score', 'mode-score', 'fid')):
         criterion = nn.BCELoss()
 
         global_step = 0
-        for epoch in range(n_epoch):
+        for epoch in range(f_epoch, f_epoch + n_epoch):
             for i, data in enumerate(dataloader):
 
                 self.net_d.zero_grad()

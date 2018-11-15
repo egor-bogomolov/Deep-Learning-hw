@@ -21,6 +21,8 @@ def get_config():
                         help='enables CUDA training')
     parser.add_argument('--batch-size', type=int, default=256,
                         help='input batch size for training')
+    parser.add_argument('--starting-epoch', type=int, default=0,
+                        help='first epoch')
     parser.add_argument('--epochs', type=int, default=30,
                         help='number of epochs to train ')
     parser.add_argument('--image-size', type=int, default=32,
@@ -28,6 +30,8 @@ def get_config():
     parser.add_argument('--n_show_samples', type=int, default=8)
     parser.add_argument('--show_img_every', type=int, default=10)
     parser.add_argument('--log_metrics_every', type=int, default=100)
+    parser.add_argument('--pretrained-generator', type=str)
+    parser.add_argument('--pretrained-discriminator', type=str)
     config = parser.parse_args()
     config.cuda = not config.no_cuda and torch.cuda.is_available()
 
@@ -53,12 +57,18 @@ def main():
 
     discriminator, generator = DCDiscriminator(config.image_size), DCGenerator(config.image_size)
 
+    if config.pretrained_discriminator:
+        discriminator.load_state_dict(torch.load(config.pretrained_discriminator))
+
+    if config.pretrained_generator:
+        discriminator.load_state_dict(torch.load(config.pretrained_generator))
+
     trainer = DCGANTrainer(generator=generator, discriminator=discriminator,
                            optimizer_d=Adam(discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999)),
                            optimizer_g=Adam(generator.parameters(), lr=0.0002, betas=(0.5, 0.999)),
                            metrics_dir='metrics')
 
-    trainer.train(dataloader, config.epochs, config.n_show_samples, config.show_img_every, config.log_metrics_every)
+    trainer.train(dataloader, config.epochs, config.starting_epoch, config.n_show_samples, config.show_img_every, config.log_metrics_every)
 
 
 if __name__ == '__main__':
